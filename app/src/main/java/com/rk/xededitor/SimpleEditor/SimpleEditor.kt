@@ -1,8 +1,11 @@
 package com.rk.xededitor.SimpleEditor
 
-import android.annotation.SuppressLint
-import android.content.Intent
-import android.graphics.Typeface
+import io.github.rosemoe.sora.event.ContentChangeEvent
+import io.github.rosemoe.sora.lang.lexer.LanguageLexer
+import io.github.rosemoe.sora.widget.CodeEditor
+import io.github.rosemoe.sora.widget.EditorColorScheme
+import io.github.rosemoe.sora.widget.component.EditorAutoCompletion
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -17,26 +20,35 @@ import androidx.lifecycle.lifecycleScope
 import com.rk.libcommons.After
 import com.rk.runner.Runner
 import com.rk.settings.PreferencesData
-import com.rk.settings.PreferencesData.getBoolean
 import com.rk.settings.PreferencesKeys
 import com.rk.xededitor.BaseActivity
-import com.rk.xededitor.MainActivity.file.PathUtils
-import com.rk.xededitor.MainActivity.file.PathUtils.toPath
 import com.rk.xededitor.R
 import com.rk.xededitor.SetupEditor
 import com.rk.xededitor.rkUtils
 import com.rk.xededitor.rkUtils.toast
-import io.github.rosemoe.sora.event.ContentChangeEvent
 import io.github.rosemoe.sora.text.Content
 import io.github.rosemoe.sora.text.ContentIO
-import io.github.rosemoe.sora.widget.CodeEditor
-import io.github.rosemoe.sora.widget.component.EditorAutoCompletion
 import java.io.File
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+class ColorCodeHighlighter : LanguageLexer {
+    private val hexColorPattern = Regex("#[0-9a-fA-F]{6}")
+
+    override fun applyHighlighting(content: String, scheme: EditorColorScheme) {
+        val matches = hexColorPattern.findAll(content)
+        matches.forEach { match ->
+            val start = match.range.first
+            val end = match.range.last + 1
+
+            val color = Color.parseColor(match.value)
+            scheme.setColor(start, end, color)
+        }
+    }
+}
 
 class SimpleEditor : BaseActivity() {
     var undo: MenuItem? = null
@@ -46,20 +58,23 @@ class SimpleEditor : BaseActivity() {
     var menu: Menu? = null
     var SearchText = ""
     var editor: CodeEditor? = null
-    
+
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (event != null) {
-            editor?.let { KeyEventHandler.onKeyEvent(event, it,this) }
+            editor?.let { KeyEventHandler.onKeyEvent(event, it, this) }
         }
         return super.onKeyDown(keyCode, event)
     }
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_simple_editor)
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
         editor = findViewById(R.id.editor)
+
+        editor?.addCustomHighlighter(ColorCodeHighlighter())
+
         supportActionBar!!.setDisplayShowTitleEnabled(false)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -68,8 +83,6 @@ class SimpleEditor : BaseActivity() {
             SetupEditor.init(this@SimpleEditor)
             SetupEditor(editor!!, this@SimpleEditor).ensureTextmateTheme(this@SimpleEditor)
         }
-        
-        
 
         File(Environment.getExternalStorageDirectory(), "karbon/font.ttf").let {
             editor!!.typefaceText =
@@ -96,7 +109,6 @@ class SimpleEditor : BaseActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here
         val id = item.itemId
         HandleMenuItemClick.handle(this, id)
         return super.onOptionsItemSelected(item)
@@ -153,24 +165,19 @@ class SimpleEditor : BaseActivity() {
     }
 
     private fun handleIntent(intent: Intent?) {
-        if (
-            intent != null &&
-                (Intent.ACTION_VIEW == intent.action || Intent.ACTION_EDIT == intent.action)
-        ) {
+        if (intent != null && (Intent.ACTION_VIEW == intent.action || Intent.ACTION_EDIT == intent.action)) {
             uri = intent.data
-            
             val path = uri!!.toPath()
             File(path).let {
                 if (it.exists() and Runner.isRunnable(it)){
-                    lifecycleScope.launch(Dispatchers.Default){
-                        while (menu == null){
+                    lifecycleScope.launch(Dispatchers.Default) {
+                        while (menu == null) {
                             delay(100)
                         }
-                        withContext(Dispatchers.Main){
+                        withContext(Dispatchers.Main) {
                             menu!!.findItem(R.id.run).isVisible = true
                         }
                     }
-                    
                 }
             }
 
