@@ -1,11 +1,11 @@
 package com.rk.xededitor.SimpleEditor
 
-import io.github.rosemoe.sora.event.ContentChangeEvent
 import io.github.rosemoe.sora.lang.lexer.LanguageLexer
-import io.github.rosemoe.sora.widget.CodeEditor
 import io.github.rosemoe.sora.widget.EditorColorScheme
-import io.github.rosemoe.sora.widget.component.EditorAutoCompletion
 import android.graphics.Color
+import android.annotation.SuppressLint
+import android.content.Intent
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -20,20 +20,27 @@ import androidx.lifecycle.lifecycleScope
 import com.rk.libcommons.After
 import com.rk.runner.Runner
 import com.rk.settings.PreferencesData
+import com.rk.settings.PreferencesData.getBoolean
 import com.rk.settings.PreferencesKeys
 import com.rk.xededitor.BaseActivity
+import com.rk.xededitor.MainActivity.file.PathUtils
+import com.rk.xededitor.MainActivity.file.PathUtils.toPath
 import com.rk.xededitor.R
 import com.rk.xededitor.SetupEditor
 import com.rk.xededitor.rkUtils
 import com.rk.xededitor.rkUtils.toast
+import io.github.rosemoe.sora.event.ContentChangeEvent
 import io.github.rosemoe.sora.text.Content
 import io.github.rosemoe.sora.text.ContentIO
+import io.github.rosemoe.sora.widget.CodeEditor
+import io.github.rosemoe.sora.widget.component.EditorAutoCompletion
 import java.io.File
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
 
 class ColorCodeHighlighter : LanguageLexer {
     private val hexColorPattern = Regex("#[0-9a-fA-F]{6}")
