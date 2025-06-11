@@ -89,8 +89,7 @@ jobs:
         if: ${{ success() && github.event.head_commit.message != '' }}
         run: |
           curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendDocument" \
-          -F chat_id="-1002408175863" \
-          -F message_thread_id="582" \
+          -F chat_id="5806630118" \          
           -F caption="${{ github.event.head_commit.message }}" \
           -F document=@"app/xed-editor-${{ env.COMMIT_HASH }}.apk"
 
