@@ -155,6 +155,8 @@ private fun onDone(name: String): Boolean {
             //${strings.script_showing_dialog.getString()}
             //showDialog(title,msg)
 
+            //showInput(title, hint, prefill)
+
             //${strings.script_set_text.getString()}
             //setEditorText("${strings.script_text.getString()}")
             
