@@ -204,7 +204,7 @@ class ImplAPI(val engine: Engine) : EngineAPI {
                     }
                     .show()
 
-                latch.await() // Wait for user action
+                latch.await()
             }
         }
     }
